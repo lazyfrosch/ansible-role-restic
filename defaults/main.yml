@@ -23,5 +23,13 @@ restic_backups_default:
   # paths: required
   extra_args: []
   excludes: []
+  schedule:
+    enabled: false
+    # timer: {required}
+    #   OnCalendar:
+    #   OnBootSec:
+    #   OnActiveSec:
+    #   OnUnitActiveSec:
+
 
 restic_github_repo: https://github.com/restic/restic

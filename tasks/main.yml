@@ -8,5 +8,7 @@
     apply:
       tags: backups
   tags: backups
-  with_items: "{{ restic_backups | default([]) }}"
+  loop: "{{ restic_backups | default([]) }}"
+  loop_control:
+    loop_var: backup
   no_log: true

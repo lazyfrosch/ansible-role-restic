@@ -4,6 +4,7 @@
     headers:
       Accept: application/vnd.github.v3+json
     return_content: true
+  check_mode: false
   register: _restic_latest
   when: restic_version == 'latest'
 

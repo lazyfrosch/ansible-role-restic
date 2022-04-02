@@ -1,0 +1,10 @@
+[Unit]
+Description=restic Backup {{ _backup.name }}
+
+[Timer]
+{% for key, value in _backup.schedule.timer.items() %}
+{{ key }}={{ value }}
+{% endfor %}
+
+[Install]
+WantedBy=multi-user.target

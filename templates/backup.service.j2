@@ -1,0 +1,9 @@
+[Unit]
+Description=restic Backup {{ _backup.name }}
+
+[Service]
+Type=oneshot
+User={{ _backup.owner }}
+Group={{ _backup.group }}
+ExecStart={{ restic_install_location | quote }}/backup-{{ _backup.name | quote }}.sh backup --verbose
+ExecStartPost={{ restic_install_location | quote }}/backup-{{ _backup.name | quote }}.sh forget --keep-monthly 12 --keep-daily 60 --verbose

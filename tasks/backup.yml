@@ -1,6 +1,6 @@
 - name: Use default settings and combine them with item data
   ansible.builtin.set_fact:
-    _backup: "{{ restic_backups_default | combine(item) }}"
+    _backup: "{{ restic_backups_default | combine(backup) }}"
 
 - name: Install backup job {{ _backup.name }}
   ansible.builtin.template:
@@ -38,3 +38,53 @@
   when: _backup.init is defined and _backup.init
   changed_when: "'config file already exists' not in _restic_init.stderr"
   failed_when: _restic_init.rc > 0 and 'config file already exists' not in _restic_init.stderr
+
+- name: Install schedule with systemd for {{ _backup.name }}
+  when: _backup.schedule.enabled
+  block:
+    - name: Install systemd units for {{ _backup.name }}
+      ansible.builtin.template:
+        src: backup.{{ item }}.j2
+        dest: /etc/systemd/system/restic-backup-{{ _backup.name }}.{{ item }}
+        owner: root
+        group: root
+        mode: '0644'
+      with_items:
+        - service
+        - timer
+
+    - name: Enable systemd timer for {{ _backup.name }}
+      ansible.builtin.systemd:
+        name: restic-backup-{{ _backup.name }}.timer
+        state: started
+        enabled: true
+        daemon_reload: true
+
+- name: Disable and remove schedule with systemd for {{ _backup.name }} if disabled
+  when: not _backup.schedule.enabled
+  block:
+    - name: Check systemd timer for {{ _backup.name }}
+      ansible.builtin.systemd:
+        name: restic-backup-{{ _backup.name }}.timer
+      register: _timer
+
+    - name: Disable systemd timer for {{ _backup.name }}
+      ansible.builtin.systemd:
+        name: restic-backup-{{ _backup.name }}.timer
+        state: stopped
+        enabled: false
+      when: _timer.status.LoadState == "loaded"
+
+    - name: Remove systemd units for {{ _backup.name }}
+      ansible.builtin.file:
+        path: /etc/systemd/system/restic-backup-{{ _backup.name }}.{{ item }}
+        state: absent
+      register: _units
+      with_items:
+        - service
+        - timer
+
+    - name: Reload systemd if changed
+      ansible.builtin.systemd:
+        daemon_reload: true
+      when: _units.changed
