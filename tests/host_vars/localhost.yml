@@ -1,0 +1,22 @@
+restic_backups:
+  - name: root
+    repository: /var/tmp/restic-test-root
+    password: test
+    init: true
+    paths:
+      - /
+    extra_args:
+      - --one-file-system
+    excludes:
+      - /home/markus/temp/a*
+
+  - name: nobody
+    repository: /var/tmp/restic-test-nobody
+    password: test
+    owner: nobody
+    group: nogroup
+    init: true
+    paths:
+      - /home/nobody
+    excludes:
+      - /home/nobody/temp

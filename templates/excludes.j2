@@ -1,0 +1,17 @@
+#
+{{ ansible_managed | comment }}
+#
+# role: lazyfrosch.restic
+#
+
+# from restic_default_excludes
+{% for line in restic_default_excludes %}
+{{ line }}
+{% endfor %}
+
+{% if _backup.excludes is defined %}
+# from _backup.excludes
+{% for line in _backup.excludes %}
+{{ line }}
+{% endfor %}
+{% endif %}

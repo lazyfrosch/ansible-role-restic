@@ -1,3 +1,12 @@
 ---
 - import_tasks: install.yml
   tags: install
+
+- name: Include tasks for each backup
+  ansible.builtin.include_tasks:
+    file: backup.yml
+    apply:
+      tags: backups
+  tags: backups
+  with_items: "{{ restic_backups | default([]) }}"
+  no_log: true

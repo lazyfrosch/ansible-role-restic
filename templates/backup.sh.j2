@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+{{ ansible_managed | comment }}
+#
+# role: lazyfrosch.restic
+#
+
+set -e
+
+RESTIC_REPOSITORY={{ _backup.repository | quote }}
+RESTIC_PASSWORD_FILE={{ restic_install_location | quote }}/backup-{{ _backup.name | quote }}-password
+RESTIC_EXCLUDE_FILE={{ restic_install_location | quote }}/backup-{{ _backup.name | quote }}-excludes
+
+RESTIC_BACKUP_PATHS=(\
+{% for path in _backup.paths %}
+  {{ path | quote }} \
+{% endfor %}
+)
+
+RESTIC_BACKUP_EXTRA_ARGS=(\
+{% for arg in _backup.extra_args | default([]) %}
+  {{ arg | quote }} \
+{% endfor %}
+)
+
+# Export some environment for the restic command
+export RESTIC_PASSWORD_FILE RESTIC_REPOSITORY
+
+# Add command line settings for certain commands
+if [[ "$1" = backup ]]; then
+    set -- backup "${RESTIC_BACKUP_EXTRA_ARGS[@]}" "${RESTIC_BACKUP_PATHS[@]}" "$@"
+
+    if [[ -e "$RESTIC_EXCLUDE_FILE" ]]; then
+        set -- "$@" --exclude-file "$RESTIC_EXCLUDE_FILE"
+    fi
+fi
+
+# Run the normal restic command
+command {{ restic_install_binary | quote }} "$@"

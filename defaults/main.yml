@@ -5,5 +5,23 @@ restic_remove_package: true
 restic_install_location: /opt/restic
 restic_install_binary: /usr/local/bin/restic
 
+restic_default_excludes:
+  - /proc/*
+  - /dev/*
+  - /sys/*
+  - /run/*
+  - /tmp/*
+
 # Internal - only change when you know what you are doing!
+restic_backups_default:
+  # name: required
+  # repository: required
+  # password: required
+  init: false
+  owner: root
+  group: root
+  # paths: required
+  extra_args: []
+  excludes: []
+
 restic_github_repo: https://github.com/restic/restic

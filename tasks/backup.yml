@@ -1,0 +1,40 @@
+- name: Use default settings and combine them with item data
+  ansible.builtin.set_fact:
+    _backup: "{{ restic_backups_default | combine(item) }}"
+
+- name: Install backup job {{ _backup.name }}
+  ansible.builtin.template:
+    src: backup.sh.j2
+    dest: "{{ restic_install_location }}/backup-{{ _backup.name }}.sh"
+    owner: "{{ _backup.owner | default('root') }}"
+    group: "{{ _backup.group | default('root') }}"
+    mode: "{{ _backup.mode | default('0700') }}"
+
+- name: Install password file for job {{ _backup.name }}
+  ansible.builtin.copy:
+    dest: "{{ restic_install_location }}/backup-{{ _backup.name }}-password"
+    content: "{{ _backup.password }}\n"
+    owner: "{{ _backup.owner | default('root') }}"
+    group: "{{ _backup.group | default('root') }}"
+    mode: "{{ _backup.mode_config | default('0600') }}"
+  no_log: true
+
+- name: Install excludes for job {{ _backup.name }}
+  ansible.builtin.template:
+    src: excludes.j2
+    dest: "{{ restic_install_location }}/backup-{{ _backup.name }}-excludes"
+    owner: "{{ _backup.owner | default('root') }}"
+    group: "{{ _backup.group | default('root') }}"
+    mode: "{{ _backup.mode_config | default('0600') }}"
+
+- name: Init the Restic repository
+  ansible.builtin.command:
+    argv:
+      - "{{ restic_install_location }}/backup-{{ _backup.name }}.sh"
+      - init
+  become: true
+  become_user: "{{ _backup.owner }}"
+  register: _restic_init
+  when: _backup.init is defined and _backup.init
+  changed_when: "'config file already exists' not in _restic_init.stderr"
+  failed_when: _restic_init.rc > 0 and 'config file already exists' not in _restic_init.stderr
