@@ -1,0 +1,16 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Try to run restic
+      ansible.builtin.command: restic version
+
+    - name: Init a local repository
+      ansible.builtin.command: restic init
+      environment:
+        RESTIC_REPOSITORY: /var/tmp/restic-test
+        RESTIC_PASSWORD: test

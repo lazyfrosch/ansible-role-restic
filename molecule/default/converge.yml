@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Include lazyfrosch.restic
+      include_role:
+        name: lazyfrosch.restic
