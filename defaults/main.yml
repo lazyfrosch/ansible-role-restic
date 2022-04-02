@@ -1,0 +1,9 @@
+---
+restic_version: latest
+
+restic_remove_package: true
+restic_install_location: /opt/restic
+restic_install_binary: /usr/local/bin/restic
+
+# Internal - only change when you know what you are doing!
+restic_github_repo: https://github.com/restic/restic

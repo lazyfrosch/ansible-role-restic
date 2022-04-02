@@ -1,0 +1,27 @@
+galaxy_info:
+  namespace: lazyfrosch
+  role_name: restic
+  author: Markus Frosch
+  description: Restic backup installation and creation of backup scripts and schedules
+  company: Lazyfrosch.de
+
+  issue_tracker_url: https://github.com/lazyfrosch/ansible-role-restic/issues
+
+  license: GPL-3.0
+
+  min_ansible_version: "2.10"
+
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bookworm
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+
+  galaxy_tags:
+    - restic
+    - backup
+    - linux

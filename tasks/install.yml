@@ -1,0 +1,64 @@
+- name: Get infos on latest release
+  ansible.builtin.uri:
+    url: "{{ restic_github_repo | replace('https://github.com', 'https://api.github.com/repos') }}/releases/latest"
+    headers:
+      Accept: application/vnd.github.v3+json
+    return_content: true
+  register: _restic_latest
+  when: restic_version == 'latest'
+
+- name: Determine parts of the download URL
+  ansible.builtin.set_fact:
+    _go_os: "{{ ansible_system | lower }}"
+    _go_arch: "{{ ansible_architecture | replace('x86_64', 'amd64') | replace('i386', '386') }}"
+    _restic_download_version: "{{ (_restic_latest.content | from_json).tag_name | regex_replace('^v', '') if restic_version == 'latest' else restic_version }}"
+
+- name: Ensure installation location
+  ansible.builtin.file:
+    path: "{{ restic_install_location }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Try to remove restic package if present
+  package:
+    name: restic
+    state: absent
+  check_mode: '{{ not restic_remove_package }}'
+  register: _restic_package
+
+- name: Fail when package is installed and we are not allowed to remove it
+  fail:
+    msg: "We need to remove package restic, but are not allowed to (restic_remove_package)"
+  when: not restic_remove_package and _restic_package.changed
+
+- name: Download Restic version
+  ansible.builtin.get_url:
+    url: "{{ restic_github_repo }}/releases/download/v{{ _restic_download_version }}/restic_{{ _restic_download_version }}_{{ _go_os }}_{{ _go_arch }}.bz2"
+    dest: "{{ restic_install_location }}/restic_{{ _restic_download_version }}_{{ _go_os }}_{{ _go_arch }}.bz2"
+  register: _restic_download
+
+- name: Extract Restic to install location
+  ansible.builtin.shell: |
+    set -e
+    tmp="$(mktemp)"
+    target={{ restic_install_binary | quote }}
+
+    trap "rm -f '${tmp}'" EXIT
+
+    bzip2 -dc "restic_{{ _restic_download_version }}_{{ _go_os }}_{{ _go_arch }}.bz2" >"$tmp"
+    chmod 755 "$tmp"
+
+    if [ ! -e "$target" ] || ! cmp -s "$tmp" "$target"; then
+      cp -a "$tmp" "$target"
+      exit 99
+    fi
+  args:
+    chdir: "{{ restic_install_location }}"
+    creates: restic
+  register: _restic_extract
+  changed_when: _restic_extract.rc == 99
+  failed_when: _restic_extract.rc > 0 and _restic_extract.rc != 99
+
+# TODO: cleanup older downloads
