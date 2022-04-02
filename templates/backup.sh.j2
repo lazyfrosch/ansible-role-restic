@@ -26,6 +26,18 @@ RESTIC_BACKUP_EXTRA_ARGS=(\
 # Export some environment for the restic command
 export RESTIC_PASSWORD_FILE RESTIC_REPOSITORY
 
+{% if restic_pre_script is defined %}
+#
+# Custom user script
+#
+
+{{ restic_pre_script }}
+
+#
+# Custom user script END
+#
+{% endif %}
+
 # Add command line settings for certain commands
 if [[ "$1" = backup ]]; then
     set -- backup "${RESTIC_BACKUP_EXTRA_ARGS[@]}" "${RESTIC_BACKUP_PATHS[@]}" "$@"

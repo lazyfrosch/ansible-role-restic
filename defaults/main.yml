@@ -12,6 +12,8 @@ restic_default_excludes:
   - /run/*
   - /tmp/*
 
+# restic_pre_script:
+
 # Internal - only change when you know what you are doing!
 restic_backups_default:
   # name: required
