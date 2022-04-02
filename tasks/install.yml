@@ -22,14 +22,14 @@
     mode: "0755"
 
 - name: Try to remove restic package if present
-  package:
+  ansible.builtin.package:
     name: restic
     state: absent
   check_mode: '{{ not restic_remove_package }}'
   register: _restic_package
 
 - name: Fail when package is installed and we are not allowed to remove it
-  fail:
+  ansible.builtin.fail:
     msg: "We need to remove package restic, but are not allowed to (restic_remove_package)"
   when: not restic_remove_package and _restic_package.changed
 
@@ -37,6 +37,9 @@
   ansible.builtin.get_url:
     url: "{{ restic_github_repo }}/releases/download/v{{ _restic_download_version }}/restic_{{ _restic_download_version }}_{{ _go_os }}_{{ _go_arch }}.bz2"
     dest: "{{ restic_install_location }}/restic_{{ _restic_download_version }}_{{ _go_os }}_{{ _go_arch }}.bz2"
+    owner: root
+    group: root
+    mode: '0644'
   register: _restic_download
 
 - name: Extract Restic to install location
